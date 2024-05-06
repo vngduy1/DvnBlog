@@ -204,6 +204,7 @@ export default function SignUp() {
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   required
+                  placeholder="ABC@abc123"
                   disabled={loading ? true : false}
                   onChange={(e) =>
                     handleOnchangeInput("password", e.target.value.trim())
@@ -216,7 +217,15 @@ export default function SignUp() {
                   setShowPassword((showPassword) => !showPassword);
                 }}
               >
-                {showPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                {formData.password.length > 0 ? (
+                  showPassword ? (
+                    <FaRegEyeSlash />
+                  ) : (
+                    <FaRegEye />
+                  )
+                ) : (
+                  ""
+                )}
               </span>
             </div>
             <Button
