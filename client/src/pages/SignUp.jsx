@@ -47,6 +47,7 @@ export default function SignUp() {
       console.log(res);
 
       const data = await res.json();
+      console.log(data);
       if (data.error) {
         setErrorMessage(data.error);
         return;

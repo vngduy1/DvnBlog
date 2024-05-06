@@ -3,8 +3,17 @@ import { Alert, Button, Label, Spinner, TextInput } from "flowbite-react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
+import { useDispatch, useSelector } from "react-redux";
+import {
+  signInStart,
+  signInSuccess,
+  signInFailure,
+} from "../redux/user/userSlice";
+
 export default function SignIn() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { loading, error: errorMessage } = useSelector((state) => state.user);
 
   const defaultValue = {
     email: "",
@@ -12,8 +21,6 @@ export default function SignIn() {
   };
   const [formData, setFormData] = useState(defaultValue);
   const [showPassword, setShowPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const handleOnchangeInput = (id, value) => {
     setFormData({
@@ -25,40 +32,34 @@ export default function SignIn() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.email) {
-      return setErrorMessage("Email cannot be left blank!!");
+      return dispatch(signInFailure("Email cannot be left blank!!"));
     }
 
     if (!formData.password) {
-      return setErrorMessage("Password cannot be left blank!!");
+      return dispatch(signInFailure("Password cannot be left blank!!"));
     }
 
     try {
-      setErrorMessage(null);
-      setLoading(true);
+      dispatch(signInStart());
       const res = await fetch("/api/auth/sign-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-      console.log(res);
 
       const data = await res.json();
-      if (data.error) {
-        setErrorMessage(data.error);
-        return;
+      if (data.success === false) {
+        return dispatch(signInFailure(data.message));
       }
 
       if (res.ok) {
+        dispatch(signInSuccess(data));
+        setFormData(defaultValue);
         navigate("/");
       }
-
-      setErrorMessage(null);
-      setFormData(defaultValue);
     } catch (error) {
-      setErrorMessage(error.message);
+      dispatch(signInFailure(error.message));
       console.log(error.message);
-    } finally {
-      setLoading(false);
     }
   };
 

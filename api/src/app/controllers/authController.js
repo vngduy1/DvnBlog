@@ -2,21 +2,22 @@ import User from "../models/user.model.js";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
+import { errorHandler } from "../../utils/error.js";
 
-const signUpFunc = async (req, res) => {
+const signUpFunc = async (req, res, next) => {
   const { username, email, password } = req.body;
 
   if (!username || username === "") {
-    return res.status(400).json({ message: "username are required" });
+    return next(errorHandler(400, "username are required"));
   }
   if (!email || email === "") {
-    return res.status(400).json({ message: "email are required" });
+    return next(errorHandler(400, "email are required"));
   }
   if (!password || password === "") {
-    return res.status(400).json({ message: "password are required" });
+    return next(errorHandler(400, "password are required"));
   }
   if (password.length < 6)
-    return res.status(501).json({ message: "Password length is not enough" });
+    return next(errorHandler(400, "Password length is not enough"));
 
   const hashedPassword = bcryptjs.hashSync(password, 10);
 
@@ -30,7 +31,8 @@ const signUpFunc = async (req, res) => {
     await newUser.save();
     res.json("Signup successful!");
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
+    console.log(error);
   }
 };
 
@@ -38,21 +40,21 @@ const signInFunc = async (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || email === "") {
-    return res.status(400).json({ message: "email are required" });
+    return next(errorHandler(400, "email are required"));
   }
   if (!password || password === "") {
-    return res.status(400).json({ message: "password are required" });
+    return next(errorHandler(400, "password are required"));
   }
 
   try {
     const validUser = await User.findOne({ email });
     if (!validUser) {
-      return res.status(400).json({ message: "User nod found!" });
+      return next(errorHandler(404, "User nod found!"));
     }
 
     const validPassword = bcryptjs.compareSync(password, validUser.password);
     if (!validPassword) {
-      return res.status(400).json({ message: "Invalid password" });
+      return next(errorHandler(400, "Invalid password"));
     }
 
     const token = jwt.sign(
@@ -69,10 +71,10 @@ const signInFunc = async (req, res, next) => {
       .cookie("access_token", token, {
         httpOnly: true,
       })
-      .json({ message: "Sign In Successfully", rest });
+      .json(rest);
   } catch (error) {
     next(error);
-    res.status(500).json({ error: error.message });
+    console.log(error);
   }
 };
 
