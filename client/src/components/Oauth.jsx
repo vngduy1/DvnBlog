@@ -2,7 +2,7 @@ import { Button } from "flowbite-react";
 import { AiFillGoogleCircle } from "react-icons/ai";
 import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import { app } from "../firebase";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   signInStart,
@@ -13,6 +13,7 @@ import {
 export default function Oauth() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { loading } = useSelector((state) => state.user);
   const auth = getAuth(app);
   const handleGoogleClick = async () => {
     const provider = new GoogleAuthProvider();
@@ -49,9 +50,10 @@ export default function Oauth() {
       gradientDuoTone={"pinkToOrange"}
       outline
       onClick={handleGoogleClick}
+      disabled={loading ? true : false}
     >
       <AiFillGoogleCircle className="w-6 h-6 mr-2" />
-      Continue with Google
+      {loading ? "Loading..." : "Continue with Google"}
     </Button>
   );
 }
