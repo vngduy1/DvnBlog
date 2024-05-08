@@ -10,9 +10,17 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import Oauth from "../components/Oauth";
+import {
+  signInStart,
+  signInSuccess,
+  signInFailure,
+} from "../redux/user/userSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function SignUp() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { loading, error: errorMessage } = useSelector((state) => state.user);
 
   const defaultValue = {
     username: "",
@@ -21,8 +29,6 @@ export default function SignUp() {
   };
   const [formData, setFormData] = useState(defaultValue);
   const [showPassword, setShowPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const handleOnchangeInput = (id, value) => {
     setFormData({
@@ -34,39 +40,33 @@ export default function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.username || !formData.email || !formData.password) {
-      return setErrorMessage("Please fill out all fields!!!");
+      return dispatch(signInFailure("Please fill out all fields!!!"));
     }
 
     try {
-      setErrorMessage(null);
-      setLoading(true);
+      dispatch(signInStart());
       const res = await fetch("/api/auth/sign-up", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-      console.log(res);
 
       const data = await res.json();
-      console.log(data);
-      if (data.error) {
-        setErrorMessage(data.error);
-        return;
+      if (data.success === false) {
+        return dispatch(signInFailure(data.error));
       }
 
       if (res.ok) {
+        dispatch(signInSuccess(data));
+        setFormData(defaultValue);
         navigate("/");
       }
-
-      setErrorMessage(null);
-      setFormData(defaultValue);
     } catch (error) {
-      setErrorMessage(error.message);
+      dispatch(signInFailure(error.message));
       console.log(error.message);
-    } finally {
-      setLoading(false);
     }
   };
+
   return (
     <div className="min-h-screen mt-20">
       <div
