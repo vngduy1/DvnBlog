@@ -3,10 +3,12 @@ import { connectDB } from "../src/config/db/mongodb.js";
 import "dotenv/config";
 import userRoutes from "./routes/user.route.js";
 import authRoutes from "./routes/auth.route.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
 //connect DB
 connectDB();

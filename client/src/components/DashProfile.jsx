@@ -17,28 +17,48 @@ export default function DashProfile() {
     username: currentUser.username,
     email: currentUser.email,
     profilePicture: currentUser.profilePicture,
+    old_password: "",
+    new_password: "",
+    new_password_2: "",
   };
 
-  const [input, setInput] = useState(defaultValue);
+  let getPass;
+  const [formData, setFormData] = useState(defaultValue);
   const [imageFile, setImageFile] = useState(null);
   const [imageFileUrl, setImageFileUrl] = useState(null);
   const [imageFileUploadProgress, setImageFileUploadProgress] = useState(null);
   const [imageFileUploadError, setImageFileUploadError] = useState(null);
+  const [hideInputPassword, setHideInputPassword] = useState(true);
   const filePickerRef = useRef();
+  console.log(formData);
+
+  useEffect(() => {
+    const HPassword = async () => {
+      const res = await fetch(`/api/user/getUser/${currentUser._id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await res.json();
+      getPass = data;
+    };
+    HPassword();
+  }, []);
 
   const handleOnchangeInput = (e) => {
-    setInput({
-      ...input,
+    setFormData({
+      ...formData,
       [e.target.id]: e.target.value.trim(),
     });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!input.username || !input.email || !input.password) {
+    if (!formData.username || !formData.email) {
       console.log("failure");
     }
   };
+  // console.log(formData);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -78,6 +98,10 @@ export default function DashProfile() {
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
           setImageFileUrl(downloadURL);
+          setFormData({
+            ...formData,
+            profilePicture: downloadURL,
+          });
         });
       }
     );
@@ -121,7 +145,7 @@ export default function DashProfile() {
             />
           )}
           <img
-            src={imageFileUrl || input?.profilePicture}
+            src={imageFileUrl || formData?.profilePicture}
             alt="user"
             className={`rounded-full w-full h-full object-cover
              border-8 border-[lightgray] ${
@@ -137,16 +161,51 @@ export default function DashProfile() {
         <TextInput
           id="username"
           type="text"
-          defaultValue={input?.username}
+          defaultValue={formData?.username}
           onChange={handleOnchangeInput}
         />
         <TextInput
           id="email"
           type="email"
-          defaultValue={input?.email}
+          defaultValue={formData?.email}
           onChange={handleOnchangeInput}
         />
-        <TextInput id="password" type="password" defaultValue={"********"} />
+        <span
+          className="text-sm"
+          onClick={() =>
+            setHideInputPassword((hideInputPassword) => !hideInputPassword)
+          }
+        >
+          Confirm password
+        </span>
+        {!hideInputPassword && (
+          <>
+            <TextInput
+              id="old_password"
+              type="password"
+              defaultValue={
+                formData?.old_password.length > 10
+                  ? formData.old_password.substring(0, 10)
+                  : formData.old_password
+              }
+              onChange={handleOnchangeInput}
+            />
+            <TextInput
+              id="new_password"
+              type="password"
+              defaultValue={formData?.new_password}
+              onChange={handleOnchangeInput}
+              placeholder="New Password"
+            />
+            <TextInput
+              id="new_password_2"
+              type="password"
+              defaultValue={formData?.new_password_2}
+              onChange={handleOnchangeInput}
+              placeholder="Confirm Password"
+            />
+          </>
+        )}
         <Button
           type="submit"
           className="sm:w-full"
