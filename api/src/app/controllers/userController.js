@@ -20,11 +20,19 @@ const getUser = async (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
   const { old_password, new_password, new_password_2 } = req.body;
-
   if (req.user.id !== req.params.userId) {
     return next(errorHandler(403, "You are not allowed to update this user"));
   }
-  if (old_password || new_password) {
+  if (new_password.length > 0) {
+    if (new_password !== new_password_2) {
+      return next(errorHandler(400, "Passwords do not match!"));
+    }
+    if (req.body.new_password.length < 6) {
+      return next(errorHandler(411, "Password must be at least 6 characters"));
+    }
+    req.body.new_password = bcryptjs.hashSync(req.body.new_password, 10);
+    console.log(new_password);
+    console.log(old_password === new_password);
     if (old_password === new_password) {
       return next(
         errorHandler(
@@ -33,13 +41,6 @@ const updateUser = async (req, res, next) => {
         )
       );
     }
-    if (new_password !== new_password_2) {
-      return next(errorHandler(400, "Passwords do not match!"));
-    }
-    if (req.body.new_password.length < 6) {
-      return next(errorHandler(411, "Password must be at least 6 characters"));
-    }
-    req.body.new_password = bcryptjs.hashSync(req.body.new_password, 10);
   }
 
   if (req.body.username) {
@@ -69,7 +70,9 @@ const updateUser = async (req, res, next) => {
           username: req.body.username,
           email: req.body.email,
           profilePicture: req.body.profilePicture,
-          password: req.body.new_password,
+          password: req.body.new_password
+            ? req.body.new_password
+            : req.body.old_password,
         },
       },
       { new: true }

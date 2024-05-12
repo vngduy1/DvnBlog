@@ -10,6 +10,12 @@ import {
 import { app } from "../firebase";
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import {
+  updateStart,
+  updateSuccess,
+  updateFailure,
+} from "../redux/user/userSlice";
+import { useDispatch } from "react-redux";
 
 export default function DashProfile() {
   const { currentUser } = useSelector((state) => state.user);
@@ -21,16 +27,17 @@ export default function DashProfile() {
     new_password: "",
     new_password_2: "",
   };
-
-  let getPass;
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState(defaultValue);
   const [imageFile, setImageFile] = useState(null);
   const [imageFileUrl, setImageFileUrl] = useState(null);
   const [imageFileUploadProgress, setImageFileUploadProgress] = useState(null);
   const [imageFileUploadError, setImageFileUploadError] = useState(null);
+  const [imageFileUploading, setImageFileUploading] = useState(false);
+  const [updateUserSuccess, setUpdateUserSuccess] = useState(null);
+  const [updateUserError, setUpdateUserError] = useState(null);
   const [hideInputPassword, setHideInputPassword] = useState(true);
   const filePickerRef = useRef();
-  console.log(formData);
 
   useEffect(() => {
     const HPassword = async () => {
@@ -40,7 +47,7 @@ export default function DashProfile() {
       });
 
       const data = await res.json();
-      getPass = data;
+      setFormData({ ...formData, old_password: data });
     };
     HPassword();
   }, []);
@@ -52,13 +59,44 @@ export default function DashProfile() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.username || !formData.email) {
-      console.log("failure");
+    setUpdateUserError(null);
+    setUpdateUserSuccess(null);
+    if (imageFileUploading) {
+      return;
+    }
+    if (!formData.username) {
+      return dispatch(updateFailure("Username cannot be left blank!!"));
+    }
+    if (!formData.email) {
+      return dispatch(updateFailure("Email cannot be left blank!!"));
+    }
+    try {
+      dispatch(updateStart());
+      const res = await fetch(`/api/user/update/${currentUser._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        dispatch(updateFailure(data.message));
+        setUpdateUserError(data.message);
+      }
+      {
+        dispatch(updateSuccess(data));
+        setUpdateUserSuccess("User's profile uploaded successfully");
+      }
+    } catch (error) {
+      dispatch(updateFailure(error.message));
+      setUpdateUserError(error.message);
     }
   };
-  // console.log(formData);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -76,6 +114,7 @@ export default function DashProfile() {
 
   const uploadImage = () => {
     setImageFileUploadError(null);
+    setImageFileUploading(true);
     const storage = getStorage(app);
     const fileName = new Date().getTime() + imageFile.name;
     const storageRef = ref(storage, fileName);
@@ -94,6 +133,7 @@ export default function DashProfile() {
         setImageFileUploadProgress(null);
         setImageFile(null);
         setImageFileUrl(null);
+        setImageFileUploading(false);
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
@@ -102,6 +142,7 @@ export default function DashProfile() {
             ...formData,
             profilePicture: downloadURL,
           });
+          setImageFileUploading(false);
         });
       }
     );
@@ -189,6 +230,7 @@ export default function DashProfile() {
                   : formData.old_password
               }
               onChange={handleOnchangeInput}
+              placeholder="Old Password"
             />
             <TextInput
               id="new_password"
@@ -219,6 +261,16 @@ export default function DashProfile() {
         <span className="cursor-pointer">Delete Account</span>
         <span className="cursor-pointer">Sign Out</span>
       </div>
+      {updateUserSuccess && (
+        <Alert color={"success"} className="mt-5">
+          {updateUserSuccess}{" "}
+        </Alert>
+      )}
+      {updateUserError && (
+        <Alert color={"failure"} className="mt-5">
+          {updateUserError}{" "}
+        </Alert>
+      )}
     </div>
   );
 }
