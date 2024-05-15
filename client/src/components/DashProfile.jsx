@@ -8,8 +8,13 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import { app } from "../firebase";
+
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { HiOutlineExclamationCircle } from "react-icons/hi";
+
 import {
   updateStart,
   updateSuccess,
@@ -17,11 +22,13 @@ import {
   deleteStart,
   deleteSuccess,
   deleteFailure,
+  signOutStart,
+  signOutSuccess,
+  signOutFailure,
 } from "../redux/user/userSlice";
-import { useDispatch } from "react-redux";
-import { HiOutlineExclamationCircle } from "react-icons/hi";
 
 export default function DashProfile() {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { currentUser, error } = useSelector((state) => state.user);
   const defaultValue = {
@@ -181,6 +188,27 @@ export default function DashProfile() {
     }
   };
 
+  //sign out func
+  const handleSignOut = async (e) => {
+    e.preventDefault();
+    try {
+      dispatch(signOutStart());
+      const res = await fetch("/api/user/sign-out", {
+        method: "POST",
+      });
+      if (!res.ok) {
+        dispatch(signOutFailure(data.message));
+      }
+      {
+        const data = await res.json();
+        dispatch(signOutSuccess(data));
+        navigate("/");
+      }
+    } catch (error) {
+      dispatch(signOutFailure(error.message));
+    }
+  };
+
   return (
     <div className="max-w-lg mx-auto p-3 w-full">
       <h1 className="my-7 text-center font-semibold text-3xl">Profile</h1>
@@ -297,7 +325,9 @@ export default function DashProfile() {
         <span onClick={() => setShowModal(true)} className="cursor-pointer">
           Delete Account
         </span>
-        <span className="cursor-pointer">Sign Out</span>
+        <span className="cursor-pointer" onClick={handleSignOut}>
+          Sign Out
+        </span>
       </div>
 
       {/* alert */}
