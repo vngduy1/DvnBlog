@@ -77,7 +77,7 @@ export default function DashSideBar() {
           {/* action  */}
           <Sidebar.Item
             icon={HiArrowSmRight}
-            className="cursor-pointer"
+            className="cursor-pointer hidden md:flex "
             onClick={handleSignOut}
           >
             Sign Out
