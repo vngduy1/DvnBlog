@@ -83,7 +83,31 @@ const getPosts = async (req, res, next) => {
   }
 };
 
-const editPosts = async () => {};
+const updatePost = async (req, res, next) => {
+  if (!req.user.isAdmin || req.user.id !== req.params.userId) {
+    return next(errorHandler(403, "You are not allowed to delete this post"));
+  }
+
+  try {
+    const updatedPost = await Post.findByIdAndUpdate(
+      req.params.postId,
+      {
+        $set: {
+          title: req.body.title,
+          content: req.body.content,
+          category: req.body.category,
+          image: req.body.image,
+        },
+      },
+      { new: true }
+    );
+
+    res.status(200).json(updatedPost);
+  } catch (error) {
+    console.log(error.message);
+    next(errorHandler(500, error.message));
+  }
+};
 
 const deletePosts = async (req, res, next) => {
   if (!req.user.isAdmin || req.user.id !== req.params.userId) {
@@ -98,4 +122,4 @@ const deletePosts = async (req, res, next) => {
   }
 };
 
-export { create, getPosts, editPosts, deletePosts };
+export { create, getPosts, updatePost, deletePosts };
