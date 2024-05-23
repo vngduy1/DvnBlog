@@ -10,21 +10,23 @@ export default function DashUsers() {
   const [showMore, setShowMore] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [userIdToDelete, setUserIdToDelete] = useState("");
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await fetch(`/api/user/get-users`);
-        const data = await res.json();
-        if (res.ok) {
-          setUsers(data.users);
-          if (data.users.length < 9) {
-            setShowMore(false);
-          }
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch(`/api/user/get-users`);
+      const data = await res.json();
+      if (res.ok) {
+        setUsers(data.users);
+        if (data.users.length < 9) {
+          setShowMore(false);
         }
-      } catch (error) {
-        console.log(error.message);
       }
-    };
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  useEffect(() => {
     if (currentUser.isAdmin) {
       fetchUsers();
     }
@@ -46,13 +48,32 @@ export default function DashUsers() {
     }
   };
 
-  const handleDeleteUser = async () => {};
+  const handleDeleteUser = async () => {
+    try {
+      const res = await fetch(`/api/user/delete/${userIdToDelete}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return console.log(res.message);
+      }
+
+      if (res.ok) {
+        fetchUsers();
+        setShowModal(false);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div className="table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500">
       {currentUser.isAdmin && users.length > 0 ? (
         <>
-          <Table hoverable className="shadow-md">
+          <Table hoverable className="shadow-md whitespace-nowrap">
             <Table.Head>
               <Table.HeadCell>Date created</Table.HeadCell>
               <Table.HeadCell>User image</Table.HeadCell>
@@ -61,9 +82,12 @@ export default function DashUsers() {
               <Table.HeadCell>Admin</Table.HeadCell>
               <Table.HeadCell>Delete</Table.HeadCell>
             </Table.Head>
-            {users.map((user) => (
-              <Table.Body className="divide-y" key={user._id}>
-                <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
+            <Table.Body className="divide-y">
+              {users.map((user) => (
+                <Table.Row
+                  key={user._id}
+                  className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                >
                   <Table.Cell>
                     {new Date(user.createdAt).toLocaleDateString()}
                   </Table.Cell>
@@ -95,8 +119,8 @@ export default function DashUsers() {
                     </span>
                   </Table.Cell>
                 </Table.Row>
-              </Table.Body>
-            ))}
+              ))}
+            </Table.Body>
           </Table>
           {showMore && (
             <button
