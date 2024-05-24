@@ -11,17 +11,24 @@ import PrivateRoute from "./components/PrivateRoute";
 import OnlyAdminPrivate from "./components/OnlyAdminPrivate";
 import CreatePost from "./pages/CreatePost";
 import UpdatePost from "./components/UpdatePost";
-import PostPage from "./components/PostPage";
+import PostPage from "./pages/PostPage";
+import ScrollToTop from "./components/ScrollToTop";
+import CurrentUser from "./components/CurrentUser";
+import ScrollToTopButton from "./components/ScrollToTopButton";
 
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Header />
       <Routes>
         <Route path="" element={<Home />} />
         <Route path="/about" element={<About />} />
-        <Route path="sign-in" element={<SignIn />} />
-        <Route path="sign-up" element={<SignUp />} />
+        <Route element={<CurrentUser />}>
+          <Route path="sign-in" element={<SignIn />} />
+          <Route path="sign-up" element={<SignUp />} />
+        </Route>
+
         <Route element={<PrivateRoute />}>
           <Route path="dashboard" element={<Dashboard />} />
         </Route>
@@ -33,6 +40,7 @@ function App() {
         <Route path="/post/:postSlug" element={<PostPage />} />
       </Routes>
       <FooterComponent />
+      <ScrollToTopButton />
     </BrowserRouter>
   );
 }
