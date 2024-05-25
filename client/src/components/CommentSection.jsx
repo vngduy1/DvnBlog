@@ -1,11 +1,13 @@
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { Textarea, Button, Alert } from "flowbite-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Comment from "./Comment";
 
 export default function CommentSection({ postId }) {
   const { currentUser } = useSelector((state) => state.user);
   const [comment, setComment] = useState("");
+  const [commentPost, setCommentPost] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -32,6 +34,7 @@ export default function CommentSection({ postId }) {
 
       if (res.ok) {
         setComment("");
+        setCommentPost([data, ...commentPost]);
       }
     } catch (error) {
       setError(error.message);
@@ -39,6 +42,24 @@ export default function CommentSection({ postId }) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const getPostComments = async () => {
+      try {
+        const res = await fetch(`/api/comment/get-post-comments/${postId}`);
+        const data = await res.json();
+        if (res.ok) {
+          setCommentPost(data);
+        }
+        if (!res.ok) {
+          setError(data.message);
+        }
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+    getPostComments();
+  }, [postId]);
 
   return (
     <div className="max-w-2xl w-full p-3">
@@ -93,6 +114,20 @@ export default function CommentSection({ postId }) {
           </div>
         </form>
       )}
+
+      <div className="text-sm my-5 flex items-center gap-1">
+        <p>Comments:</p>
+        <div className="border border-gray-400 py-[2px] px-2 rounded-sm">
+          <p>{commentPost.length}</p>
+        </div>
+      </div>
+      <div>
+        {commentPost &&
+          commentPost?.length > 0 &&
+          commentPost.map((comment) => (
+            <Comment key={comment._id} comment={comment} />
+          ))}
+      </div>
     </div>
   );
 }

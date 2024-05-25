@@ -148,4 +148,19 @@ const getUsers = async (req, res, next) => {
   }
 };
 
-export { getUser, updateUser, deleteUser, signOut, getUsers };
+const getUserById = async (req, res, next) => {
+  try {
+    const userId = req.params.userId;
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(errorHandler(404, "User not found!"));
+    }
+    const { password, ...rest } = user._doc;
+
+    res.status(201).json(rest);
+  } catch (error) {
+    next(errorHandler(500, error.message));
+  }
+};
+
+export { getUser, updateUser, deleteUser, signOut, getUsers, getUserById };
