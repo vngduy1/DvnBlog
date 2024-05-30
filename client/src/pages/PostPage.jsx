@@ -11,6 +11,7 @@ export default function PostPage() {
   const [error, setError] = useState(null);
   const [post, setPost] = useState(null);
   const [recentPosts, setRecentPosts] = useState(null);
+  console.log(recentPosts);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -61,7 +62,6 @@ export default function PostPage() {
   return (
     <main className="p-3 flex flex-col max-w-6xl mx-auto min-h-screen">
       {error && <Alert color={"failure"}>{error} </Alert>}
-      PostPage
       <h1 className="text-3xl mt-10 p-3 text-center font-serif max-w-2xl mx-auto lg:text-4xl">
         {post && post?.title}
       </h1>
@@ -100,7 +100,7 @@ export default function PostPage() {
         <div className="flex flex-wrap gap-5 mt-5 justify-center">
           {recentPosts &&
             recentPosts?.map((recentPost) => (
-              <PostCard key={recentPost._id} post={post} />
+              <PostCard key={recentPost._id} post={recentPost} />
             ))}
         </div>
       </div>
