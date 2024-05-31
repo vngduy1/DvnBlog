@@ -15,6 +15,7 @@ import PostPage from "./pages/PostPage";
 import ScrollToTop from "./components/ScrollToTop";
 import CurrentUser from "./components/CurrentUser";
 import ScrollToTopButton from "./components/ScrollToTopButton";
+import Search from "./pages/Search";
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
         </Route>
         <Route path="/projects" element={<Project />} />
         <Route path="/post/:postSlug" element={<PostPage />} />
+        <Route path="/search" element={<Search />} />
       </Routes>
       <FooterComponent />
       <ScrollToTopButton />
