@@ -9,13 +9,25 @@ import {
   signOutStart,
   signOutSuccess,
 } from "../redux/user/userSlice";
+import { useEffect, useState } from "react";
 
 export default function Header() {
   const path = useLocation().pathname;
+  const location = useLocation();
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state) => state.user);
   const { theme } = useSelector((state) => state.theme);
+  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const searchTermFormUrl = urlParams.get("searchTerm");
+
+    if (searchTermFormUrl) {
+      setSearchTerm(searchTermFormUrl);
+    }
+  }, [location.search]);
 
   //sign out func
   const handleSignOut = async (e) => {
@@ -37,6 +49,14 @@ export default function Header() {
     }
   };
 
+  const handleSubmitSearch = async (e) => {
+    e.preventDefault();
+    const urlParams = new URLSearchParams(location.search);
+    urlParams.set("searchTerm", searchTerm);
+    const searchQuery = urlParams.toString();
+    navigate(`/search?${searchQuery}`);
+  };
+
   return (
     <Navbar className="border-b-2">
       <Link
@@ -53,15 +73,22 @@ export default function Header() {
         Blog
       </Link>
 
-      <form action="">
+      <form onSubmit={handleSubmitSearch}>
         <TextInput
           type="text"
           placeholder="検索..."
           rightIcon={AiOutlineSearch}
           className="hidden lg:inline"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
       </form>
-      <Button className="w-9 h-9 lg:hidden" color={"gray"} pill>
+      <Button
+        className="w-9 h-9 lg:hidden"
+        color={"gray"}
+        pill
+        onClick={() => navigate("/search")}
+      >
         <AiOutlineSearch />
       </Button>
       <div className="flex gap-2 md:order-2">
